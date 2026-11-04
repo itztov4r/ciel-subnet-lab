@@ -1,0 +1,10 @@
+const {test}=require('node:test'),assert=require('node:assert/strict');
+const {calculate,splitSubnet,toNumber,toIP}=require('../network.js');
+test('normal /24',()=>{const r=calculate('192.168.10.42',24);assert.equal(r.cidr,'192.168.10.0/24');assert.equal(r.mask,'255.255.255.0');assert.equal(r.lastAddress,'192.168.10.255');assert.equal(r.hosts,254);assert.equal(r.privateAddress,true);});
+test('/0 covers IPv4',()=>{const r=calculate('255.255.255.255',0);assert.equal(r.network,'0.0.0.0');assert.equal(r.addresses,4294967296);assert.equal(r.hosts,4294967294);assert.equal(r.mask,'0.0.0.0');});
+test('/31 point to point',()=>{const r=calculate('192.0.2.5',31);assert.equal(r.firstHost,'192.0.2.4');assert.equal(r.lastHost,'192.0.2.5');assert.equal(r.hosts,2);});
+test('/32 single host',()=>{const r=calculate('203.0.113.8',32);assert.equal(r.firstHost,r.lastHost);assert.equal(r.hosts,1);});
+test('reject malformed input',()=>{for(const ip of ['256.0.0.1','01.2.3.4','1.2.3','a.b.c.d','1.2.3.4.5'])assert.throws(()=>calculate(ip,24));for(const p of [-1,33,2.5,'','24abc'])assert.throws(()=>calculate('192.0.2.1',p));});
+test('four /26 subnets',()=>{const s=splitSubnet(calculate('192.168.1.1',24),26);assert.equal(s.total,4);assert.equal(s.rows[3].cidr,'192.168.1.192/26');assert.equal(s.rows[3].hosts,62);});
+test('limit output and reject supernets',()=>{const s=splitSubnet(calculate('10.0.0.1',8),32);assert.equal(s.rows.length,16);assert.equal(s.total,16777216);assert.throws(()=>splitSubnet(calculate('10.0.0.1',24),16));});
+test('unsigned and private boundaries',()=>{for(const n of [0,1,2147483648,4294967295])assert.equal(toNumber(toIP(n)),n);for(const [ip,expected]of [['172.15.255.255',false],['172.16.0.0',true],['172.31.255.255',true],['172.32.0.0',false]])assert.equal(calculate(ip,12).privateAddress,expected);});
