@@ -1,5 +1,7 @@
 # CIEL Subnet Lab
 
+[**Essayer le calculateur en ligne**](https://itztov4r.github.io/ciel-subnet-lab/)
+
 **Comprendre une adresse IPv4, son réseau et son découpage.**
 
 Interface responsive, calcul en JavaScript natif et visualisation binaire. Projet pédagogique de portfolio, préparé avec assistance IA.
