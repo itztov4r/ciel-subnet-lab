@@ -8,3 +8,9 @@ test('reject malformed input',()=>{for(const ip of ['256.0.0.1','01.2.3.4','1.2.
 test('four /26 subnets',()=>{const s=splitSubnet(calculate('192.168.1.1',24),26);assert.equal(s.total,4);assert.equal(s.rows[3].cidr,'192.168.1.192/26');assert.equal(s.rows[3].hosts,62);});
 test('limit output and reject supernets',()=>{const s=splitSubnet(calculate('10.0.0.1',8),32);assert.equal(s.rows.length,16);assert.equal(s.total,16777216);assert.throws(()=>splitSubnet(calculate('10.0.0.1',24),16));});
 test('unsigned and private boundaries',()=>{for(const n of [0,1,2147483648,4294967295])assert.equal(toNumber(toIP(n)),n);for(const [ip,expected]of [['172.15.255.255',false],['172.16.0.0',true],['172.31.255.255',true],['172.32.0.0',false]])assert.equal(calculate(ip,12).privateAddress,expected);});
+test('reject invalid numeric addresses and unsafe output limits',()=>{
+ for(const n of [-1,4294967296,NaN,Infinity,1.5,'1'])assert.throws(()=>toIP(n));
+ for(const n of [0,-1,NaN,Infinity,2.5,1000000000])assert.throws(()=>splitSubnet(calculate('0.0.0.0',0),32,n));
+ assert.equal(splitSubnet(calculate('0.0.0.0',0),32,32).rows.length,32);
+});
+
